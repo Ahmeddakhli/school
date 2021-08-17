@@ -4,6 +4,8 @@ namespace App\Http\Controllers\admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Classroom;
+use App\Http\Requests\admin\classrooms\StoreClassroomRequest;
+use App\Http\Requests\admin\classrooms\UpdateClassroomRequest;
 use Illuminate\Http\Request;
 
 class ClassroomController extends Controller
@@ -42,7 +44,7 @@ class ClassroomController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreClassroomRequest $request)
     {
         Classroom::create($request->all());
       
@@ -84,7 +86,7 @@ class ClassroomController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateClassroomRequest $request, $id)
     {
          Classroom::findorfail($id)->update($request->all());;
         

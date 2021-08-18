@@ -5,10 +5,13 @@ namespace App\Http\Controllers\admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Student;
+
 use App\Http\Requests\admin\students\StoreStudentRequest;
 use App\Http\Requests\admin\students\UpdateStudentRequest;
 use App\Models\Classroom;
 use App\Models\Course;
+use App\DataTables\StudentsDataTable;
+
 class StudentController extends Controller
 {
     public function __construct()
@@ -20,7 +23,12 @@ class StudentController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(StudentsDataTable $dataTable)
+    {
+        return $dataTable->render('admin.students.index_datatable');
+    }
+   
+    /** public function index()
     {
         $students = Student::latest()->paginate(5);
 
@@ -28,7 +36,6 @@ class StudentController extends Controller
         return view('admin.students.index',['students'=>$students]);
     }
 
-    /**
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -50,11 +57,26 @@ class StudentController extends Controller
     {
         Student::create($request->all());
         $student=Student::get()->last();
-        foreach($request->course_id  as $course){
-            $student->courses()->syncWithoutDetaching( $course);
+        $courses=$request->course_id;
+        
+        if($request->has('course_id')){
+            foreach($courses  as $course){
+                $student->courses()->syncWithoutDetaching( $course);
+            }
         }
-        return redirect()->route('students.index')
-                        ->with('success','student created successfully.');
+     
+        if ($student)
+        return response()->json([
+            'status' => true,
+            'msg' => 'تم الحفظ بنجاح',
+        ]);
+
+    else
+        return response()->json([
+            'status' => false,
+            'msg' => 'فشل الحفظ برجاء المحاوله مجددا',
+        ]);
+       
     }
 
     /**
@@ -96,14 +118,27 @@ class StudentController extends Controller
     public function update(UpdateStudentRequest $request, $id)
     {
         $student =  Student::findorfail($id);
-        $student->update($request->all());
+        
+      
+        if ($student)
+        {
+            $student->update($request->all());
+            if($request->has('course_id')){
+                foreach($request->course_id  as $course){
+                    $student->courses()->syncWithoutDetaching( $course);
+                }
+                }
+        return response()->json([
+            'status' => true,
+            'msg' => 'تم التحديث بنجاح',
+        ]);
+    }
+    else
+        return response()->json([
+            'status' => false,
+            'msg' => 'هذا الطالب غير موجود',
+        ]);
        
-        foreach($request->course_id  as $course){
-            $student->courses()->syncWithoutDetaching( $course);
-        }
-    
-        return redirect()->route('students.index')
-                        ->with('success','student updated successfully');
     }
 
     /**
@@ -112,12 +147,24 @@ class StudentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request  $request)
     {
-       $student= Student::findorfail($id);
+       $student= Student::findorfail($request->id);
+       if ($student)
+       {
         $student->courses()->detach();
         $student->delete();
-        return redirect()->route('students.index')
-                        ->with('success','student deleted successfully');
+        return response()->json([
+            'status' => true,
+            'msg' => 'تم الحذف بنجاح',
+            'id' =>  $request->id
+        ]);
+   }
+   else
+       return response()->json([
+           'status' => false,
+           'msg' => 'هذا الطالب غير موجود',
+       ]);
+      
     }
 }

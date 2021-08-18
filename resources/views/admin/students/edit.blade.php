@@ -7,12 +7,7 @@
             <div class="card">
                 <div class="card-header">students</div>
 
-                <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    @endif
+             
  
     <div class="row">
         <div class="col-lg-12 margin-tb">
@@ -25,18 +20,11 @@
         </div>
     </div>
    
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <strong>Whoops!</strong> There were some problems with your input.<br><br>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+ <div class="alert alert-success" id="success_msg" style="display: none;">
+            تم التعديل بنجاح
         </div>
-    @endif
   
-    <form action="{{ route('students.update',$student->id) }}" method="POST">
+    <form  id="offerForm" action="" method="POST">
         @csrf
         @method('PUT')
    
@@ -45,12 +33,16 @@
                 <div class="form-group">
                     <strong>Name:</strong>
                     <input type="text" name="name" value="{{ $student->name }}" class="form-control" placeholder="Name">
+                     <small id="name_error" class="form-text text-danger"></small>
+
                 </div>
             </div>
             <div class="col-xs-12 col-sm-12 col-md-12">
                 <div class="form-group">
                     <strong>age:</strong>
                     <input class="form-control" type="number" name="age" placeholder="age" value="{{ $student->age }}">
+                                  <small id="age_error" class="form-text text-danger"></small>
+
                 </div>
             </div>
 
@@ -73,7 +65,8 @@
                                 <option value="{{ $course->id }}">  {{ $course->name }}</option>
                         @endforeach
         </select>
-            
+                               <small id="course_id_error" class="form-text text-danger"></small>
+
      </div>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-12">
@@ -83,11 +76,13 @@
                             @foreach ($classrooms as $classroom)
                                     <option value="{{ $classroom->id }}">  {{ $classroom->name }}</option>
                             @endforeach
-                </select>       
+                </select>  
+                  <small id="classroom_id_error" class="form-text text-danger"></small>
+     
             </div>
         </div>
             <div class="col-xs-12 col-sm-12 col-md-12 text-center">
-              <button type="submit" class="btn btn-primary">Submit</button>
+              <button id="save_offer" class="btn btn-primary">Submit</button>
             </div>
         </div>
    
@@ -97,4 +92,37 @@
         </div>
     </div>
 </div>
+@endsection
+@section('js')
+
+    <script>
+        $(document).on('click', '#save_offer', function (e) {
+            e.preventDefault();
+            $('#age_error').text('');
+            $('#name_error').text('');
+            $('#classroom_id_error').text('');
+            $('#course_id_error').text('');
+            var formData = new FormData($('#offerForm')[0]);
+            $.ajax({
+                type: 'post',
+                //enctype: 'multipart/form-data',
+                url: "{{route('students.update',$student->id)}}",
+                data: formData,
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function (data) {
+                    if (data.status == true) {
+                        $('#success_msg').show();
+                    }
+                }, error: function (reject) {
+                    var response = $.parseJSON(reject.responseText);
+                    $.each(response.errors, function (key, val) {
+                        $("#" + key + "_error").text(val[0]);
+                    });
+                }
+            });
+        });
+    </script>
+
 @endsection

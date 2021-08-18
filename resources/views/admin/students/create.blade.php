@@ -2,17 +2,17 @@
 
 @section('content')
 <div class="container">
+  <div class="alert alert-success" id="success_msg" style="display: none;">
+            تم الحفظ بنجاح
+        </div>
+
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
                 <div class="card-header">students</div>
 
                 <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    @endif
+                
  <div class="row">
     <div class="col-lg-12 margin-tb">
         <div class="pull-left">
@@ -24,18 +24,9 @@
     </div>
 </div>
    
-@if ($errors->any())
-    <div class="alert alert-danger">
-        <strong>Whoops!</strong> There were some problems with your input.<br><br>
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+
    
-<form action="{{ route('students.store') }}" method="POST">
+<form id="studentForm" action="" method="POST">
     @csrf
   
      <div class="row">
@@ -43,13 +34,14 @@
             <div class="form-group">
                 <strong>Name:</strong>
                 <input type="text" name="name" class="form-control" placeholder="Name"value="{{old('name')}}">
-
+                   <small id="name_error" class="form-text text-danger"></small>
             </div>
         </div>
         <div class="col-xs-12 col-sm-12 col-md-12">
             <div class="form-group">
                 <strong>age:</strong>
                 <input  type="number"class="form-control"  name="age" placeholder="age" value="{{old('age')}}">
+             <small id="age_error" class="form-text text-danger"></small>
             </div>
         </div>
           <div class="col-xs-12 col-sm-12 col-md-12">
@@ -59,7 +51,8 @@
                 @foreach ($classrooms as $classroom)
                         <option value="{{ $classroom->id }}">  {{ $classroom->name }}</option>
                 @endforeach
-     </select>       
+     </select>   
+      <small id="classroom_id_error" class="form-text text-danger"></small>    
      </div>
         </div>
        <div class="col-xs-12 col-sm-12 col-md-12">
@@ -70,11 +63,12 @@
                                 <option value="{{ $course->id }}">  {{ $course->name }}</option>
                         @endforeach
         </select>      
+         
             </div>
         </div>
    
         <div class="col-xs-12 col-sm-12 col-md-12 text-center">
-                <button type="submit" class="btn btn-primary">Submit</button>
+                <button id="save_student" class="btn btn-primary">Submit</button>
         </div>
     </div>
    
@@ -84,4 +78,38 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('js')
+
+    <script>
+        $(document).on('click', '#save_student', function (e) {
+            e.preventDefault();
+              $('#age_error').text('');
+            $('#name_error').text('');
+            $('#classroom_id_error').text('');
+            $('#course_id_error').text('');
+            var formData = new FormData($('#studentForm')[0]);
+            $.ajax({
+                type: 'post',
+                //enctype: 'multipart/form-data',
+                url: "{{route('students.store')}}",
+                data: formData,
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function (data) {
+                    if (data.status == true) {
+                        $('#success_msg').show();
+                    }
+                }, error: function (reject) {
+                    var response = $.parseJSON(reject.responseText);
+                    $.each(response.errors, function (key, val) {
+                        $("#" + key + "_error").text(val[0]);
+                    });
+                }
+            });
+        });
+    </script>
+
 @endsection

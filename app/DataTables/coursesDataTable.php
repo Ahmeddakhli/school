@@ -2,14 +2,14 @@
 
 namespace App\DataTables;
 
-use App\Models\student;
+use App\Models\course;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
 use Yajra\DataTables\Html\Editor\Editor;
 use Yajra\DataTables\Html\Editor\Fields;
 use Yajra\DataTables\Services\DataTable;
 
-class studentsDataTable extends DataTable
+class coursesDataTable extends DataTable
 {
     /**
      * Build DataTable class.
@@ -21,33 +21,39 @@ class studentsDataTable extends DataTable
     {
         return datatables()
             ->eloquent($query)
+           
             ->editColumn('name', function ($row) {
-                return '<a href="'.route('students.show', $row->id).'">'.$row->name.'</a>';
+                return '<a href="'.route('courses.show', $row->id).'">'.$row->name.'</a>';
             })
-            ->rawColumns(['action', 'name','classroom_name','student_courses'])
+            ->rawColumns(['action', 'name','course_classrooms','course_students_num'])
             ->addColumn('action',  function($row){
                 $actionBtn = '
-                 <a href="'. route('students.edit', $row->id) .'" class="edit btn btn-success btn-sm">تعديل</a>
-                 <form action="'. route('students.destroy', $row->id) .'" method="POST">
+                 <a href="'. route('courses.edit', $row->id) .'" class="edit btn btn-success btn-sm">تعديل</a>
+                 <form action="'. route('courses.destroy', $row->id) .'" method="POST">
                  '.csrf_field().'
                  '.method_field("DELETE").'
-                 <button student_id="'.$row->id.'" class=" delete_btn delete btn btn-danger btn-sm"
+                 <button course_id="'.$row->id.'" class=" delete_btn delete btn btn-danger btn-sm"
                      onclick="return confirm(\'سوف يتم حذف المسؤل نهائينا هل تريد الحذف؟\')">حذف</a>
                  </form>';
                 return $actionBtn;
             })
-            ->addColumn('classroom_name',  function($row){
-                return $row->classroom->name;
+            ->addColumn('course_students_num',  function($row){
+              
+                return     count($row->students)  ;
+
+                
             })
-            ->addColumn('student_courses',  function($row){
-                if ( count($row->courses)>0){
-                   foreach ($row->courses as $course){
-                    return    $course->name .'|' ;
+           
+            ->addColumn('course_classrooms',  function($row){
+              
+                if ( count($row->classrooms)>0){
+                   foreach ($row->classrooms as $classroom){
+                       $classroom->name  ;
             }}
              else{
-                return ' no courses yet';}
+                return ' no classrooms yet';}
              
-                
+             
             })
        
             ->setRowId(function ($row) {
@@ -62,10 +68,10 @@ class studentsDataTable extends DataTable
     /**
      * Get query source of dataTable.
      *
-     * @param \App\Models\student $model
+     * @param \App\Models\course $model
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function query(student $model)
+    public function query(course $model)
     {
         return $model->newQuery();
     }
@@ -78,7 +84,7 @@ class studentsDataTable extends DataTable
     public function html()
     {
         return $this->builder()
-                    ->setTableId('students-table')
+                    ->setTableId('courses-table')
                     ->columns($this->getColumns())
                     ->minifiedAjax()
                     ->dom('Bfrtip')
@@ -143,33 +149,33 @@ class studentsDataTable extends DataTable
     protected function getColumns()
     {
         return [
-            
+         
                  
-                  Column::make('id')
-                  ->width(10)
-                  ->title("رقم")
-                   ,
-                   Column::make('name')
-                   ->title("الاسم")
-                   ,
-                   Column::make('age')
-                   ->title("العمر")
-                   ,
-                   Column::make('student_courses')
-                   ->title("كورسات الطالب")
-                   ,  Column::make('classroom_name')
-                   ->title("الفصل")
-                   ,
+            Column::make('id')
+            ->width(10)
+            ->title("رقم")
+             ,
+             Column::make('name')
+             ->title("الاسم")
+             ,
+             Column::make('detail')
+             ->title("التفاصيل")
+             ,
+             Column::make('course_students_num')
+             ->title("الطلاب المشتركين")
+             ,  Column::make('course_classrooms')
+             ->title("الفصول")
+             ,
             
-                   Column::make('created_at')->title("تاريخ الاضافة"),
-                    Column::make('updated_at')->title("تاريخ التعديل"),
-                    Column::computed('action')
-                    ->title(" عمليات")
-                    
-                    ->exportable(true)
-                    ->printable(true)
-                    ->width(60),
-        ];
+             Column::make('created_at')->title("تاريخ الاضافة"),
+            Column::make('updated_at')->title("تاريخ التعديل"),
+            Column::computed('action')
+            ->title(" عمليات")
+            
+            ->exportable(true)
+            ->printable(true)
+            ->width(60),
+  ];
     }
 
     /**
@@ -179,6 +185,6 @@ class studentsDataTable extends DataTable
      */
     protected function filename()
     {
-        return 'students_' . date('YmdHis');
+        return 'courses_' . date('YmdHis');
     }
 }

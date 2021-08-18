@@ -29,12 +29,12 @@ class StudentController extends Controller
     }
    
     /** public function index()
-    {
-        $students = Student::latest()->paginate(5);
+   * {
+      *  $students = Student::latest()->paginate(5);
 
     
-        return view('admin.students.index',['students'=>$students]);
-    }
+      *  return view('admin.students.index',['students'=>$students]);
+    *}
 
      * Show the form for creating a new resource.
      *
@@ -55,8 +55,7 @@ class StudentController extends Controller
      */
     public function store(StoreStudentRequest $request)
     {
-        Student::create($request->all());
-        $student=Student::get()->last();
+        $student=Student::create($request->all());
         $courses=$request->course_id;
         
         if($request->has('course_id')){

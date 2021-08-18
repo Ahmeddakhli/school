@@ -24,7 +24,7 @@ class UpdateClassroomRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'=> 'required|string|max:225|unique:classrooms,name',
+            'name'=> 'required|string|max:225',
             'detail'=> 'required|string|max:225',
         ];
     }

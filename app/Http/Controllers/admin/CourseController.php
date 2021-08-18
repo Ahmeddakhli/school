@@ -7,6 +7,8 @@ use App\Models\Course;
 use App\Models\Classroom;
 use App\Http\Requests\admin\courses\StoreCourseRequest;
 use App\Http\Requests\admin\courses\UpdateCourseRequest;
+use App\DataTables\CoursesDataTable;
+
 
 use Illuminate\Http\Request;
 
@@ -21,15 +23,20 @@ class CourseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(CoursesDataTable $dataTable)
     {
-        $courses = Course::latest()->paginate(5);
+        return $dataTable->render('admin.courses.index_datatable');
+    }
+   /**
+* public function index()
+   * {
+    *    $courses = Course::latest()->paginate(5);
 
     
-        return view('admin.courses.index',['courses'=>$courses]);
-    }
+     *   return view('admin.courses.index',['courses'=>$courses]);
+    *}
 
-    /**
+    
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -51,14 +58,26 @@ class CourseController extends Controller
     public function store(StoreCourseRequest $request)
     {
         
-        Course::create($request->all());
+        $course= Course::create($request->all());
 
-        $course=Course::get()->last();
-    foreach($request->classroom_id  as $classroom){
-        $course->classrooms()->syncWithoutDetaching( $classroom);
+    if($request->has('classroom_id')){
+        foreach($request->classroom_id  as $classroom){
+            $course->classrooms()->syncWithoutDetaching( $classroom);
+        }
     }
-        return redirect()->route('courses.index')
-        ->with('success','course created successfully.');
+ 
+    if ($course)
+    return response()->json([
+        'status' => true,
+        'msg' => 'تم الحفظ بنجاح',
+    ]);
+
+else
+    return response()->json([
+        'status' => false,
+        'msg' => 'فشل الحفظ برجاء المحاوله مجددا',
+    ]);
+      
 
     }
 
@@ -101,15 +120,25 @@ class CourseController extends Controller
     public function update(UpdateCourseRequest $request, $id)
     {
         $course =  Course::findorfail($id);
+         
+        if ($course)
+        {
+            $course->update($request->all());
+            foreach($request->classroom_id  as $classroom){
+                $course->classrooms()->syncWithoutDetaching( $classroom);
+            }
+        return response()->json([
+            'status' => true,
+            'msg' => 'تم التحديث بنجاح',
+        ]);
+    }
+    else
+        return response()->json([
+            'status' => false,
+            'msg' => 'هذا الكورس  غير موجود',
+        ]);
+  
         
-        $course->update($request->all());
-        foreach($request->classroom_id  as $classroom){
-            $course->classrooms()->syncWithoutDetaching( $classroom);
-        }
-        
-    
-        return redirect()->route('courses.index')
-                        ->with('success','course updated successfully');
     
     }
 
@@ -119,16 +148,25 @@ class CourseController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request  $request)
     {
-        $course= Course::findorfail($id);
-        $course->classrooms()->detach();
-        $course->students()->detach();
-        $course->delete();
-
-
-        return redirect()->route('courses.index')
-                        ->with('success','course deleted successfully');
+        $course= Course::findorfail($request->id);
+        if ($course)
+        {
+            $course->classrooms()->detach();
+            $course->students()->detach();
+            $course->delete();
+         return response()->json([
+             'status' => true,
+             'msg' => 'تم الحذف بنجاح',
+             'id' =>  $request->id
+         ]);
+    }
+    else
+        return response()->json([
+            'status' => false,
+            'msg' => 'هذا الكورس غير موجود',
+        ]);
     
     }
 }

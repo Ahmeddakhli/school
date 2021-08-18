@@ -24,7 +24,7 @@
             تم التعديل بنجاح
         </div>
   
-    <form  id="offerForm" action="" method="POST">
+    <form  id="studentForm" action="" method="POST">
         @csrf
         @method('PUT')
    
@@ -82,7 +82,7 @@
             </div>
         </div>
             <div class="col-xs-12 col-sm-12 col-md-12 text-center">
-              <button id="save_offer" class="btn btn-primary">Submit</button>
+              <button id="save_student" class="btn btn-primary">Submit</button>
             </div>
         </div>
    
@@ -96,13 +96,13 @@
 @section('js')
 
     <script>
-        $(document).on('click', '#save_offer', function (e) {
+        $(document).on('click', '#save_student', function (e) {
             e.preventDefault();
             $('#age_error').text('');
             $('#name_error').text('');
             $('#classroom_id_error').text('');
             $('#course_id_error').text('');
-            var formData = new FormData($('#offerForm')[0]);
+            var formData = new FormData($('#studentForm')[0]);
             $.ajax({
                 type: 'post',
                 //enctype: 'multipart/form-data',

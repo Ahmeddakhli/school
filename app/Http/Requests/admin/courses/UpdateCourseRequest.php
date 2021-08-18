@@ -24,7 +24,7 @@ class UpdateCourseRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'=> 'required|string|max:225|unique:courses,name',
+            'name'=> 'required|string|max:225',
             'detail'=> 'required|string|max:225',
             'classroom_id'=> 'required',
         ];

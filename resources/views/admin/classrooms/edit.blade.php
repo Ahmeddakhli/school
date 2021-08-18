@@ -8,11 +8,7 @@
                 <div class="card-header">classrooms</div>
 
                 <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    @endif
+               
  
     <div class="row">
         <div class="col-lg-12 margin-tb">
@@ -25,18 +21,11 @@
         </div>
     </div>
    
-    @if ($errors->any())
-        <div class="alert alert-danger">
-            <strong>Whoops!</strong> There were some problems with your input.<br><br>
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
+ <div class="alert alert-success" id="success_msg" style="display: none;">
+            تم التعديل بنجاح
         </div>
-    @endif
   
-    <form action="{{ route('classrooms.update',$classroom->id) }}" method="POST">
+    <form   id="classroomForm" action="{{ route('classrooms.update',$classroom->id) }}" method="POST">
         @csrf
         @method('PUT')
    
@@ -45,6 +34,8 @@
                 <div class="form-group">
                     <strong>Name:</strong>
                     <input type="text" name="name" value="{{ $classroom->name }}" class="form-control" placeholder="Name">
+                  <small id="name_error" class="form-text text-danger"></small>
+
                 </div>
             </div>
             <div class="col-xs-12 col-sm-12 col-md-12">
@@ -57,6 +48,8 @@
                 <div class="form-group">
                     <strong>students numper:</strong>
                     <input type="text" name="name" value="    {{count($classroom->students) }}" class="form-control" placeholder="Name" disabled>
+                    <small id="detail_error" class="form-text text-danger"></small>
+
                 </div>
             </div>
                <div class="col-xs-12 col-sm-12 col-md-12">
@@ -64,8 +57,8 @@
                     <strong>classroom_courses:</strong>
                     <span>
                  @if(count($classroom->courses)>0)
-                                  @foreach ($classroom->courses as $classroom)
-                            {{ $courses->name }} |
+                                  @foreach ($classroom->courses as $course)
+                            {{ $course->name }} |
                                 @endforeach
                   @else
                    no courses yet
@@ -78,7 +71,7 @@
             </div>
  
             <div class="col-xs-12 col-sm-12 col-md-12 text-center">
-              <button type="submit" class="btn btn-primary">Submit</button>
+              <button id="save_classroom" class="btn btn-primary">Submit</button>
             </div>
         </div>
    
@@ -88,4 +81,36 @@
         </div>
     </div>
 </div>
+@endsection
+@section('js')
+
+    <script>
+        $(document).on('click', '#save_classroom', function (e) {
+            e.preventDefault();
+            $('#detail_error').text('');
+            $('#name_error').text('');
+
+            var formData = new FormData($('#classroomForm')[0]);
+            $.ajax({
+                type: 'post',
+                //enctype: 'multipart/form-data',
+                url: "{{route('classrooms.update',$classroom->id)}}",
+                data: formData,
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function (data) {
+                    if (data.status == true) {
+                        $('#success_msg').show();
+                    }
+                }, error: function (reject) {
+                    var response = $.parseJSON(reject.responseText);
+                    $.each(response.errors, function (key, val) {
+                        $("#" + key + "_error").text(val[0]);
+                    });
+                }
+            });
+        });
+    </script>
+
 @endsection

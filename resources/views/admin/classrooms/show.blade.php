@@ -43,8 +43,8 @@
                 <strong>classroom_courses:</strong>
                   <span>
                   @if(count($classroom->courses)>0)
-                                  @foreach ($classroom->courses as $classroom)
-                            {{ $courses->name }} |
+                                  @foreach ($classroom->courses as $course)
+                            {{ $course->name }} |
                                 @endforeach
                   @else
                    no courses yet

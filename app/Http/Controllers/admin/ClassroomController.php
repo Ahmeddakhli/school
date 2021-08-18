@@ -7,6 +7,7 @@ use App\Models\Classroom;
 use App\Http\Requests\admin\classrooms\StoreClassroomRequest;
 use App\Http\Requests\admin\classrooms\UpdateClassroomRequest;
 use Illuminate\Http\Request;
+use App\DataTables\ClassroomsDataTable;
 
 class ClassroomController extends Controller
 {
@@ -19,15 +20,20 @@ class ClassroomController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(ClassroomsDataTable $dataTable)
     {
-        $classrooms = Classroom::latest()->paginate(5);
+        return $dataTable->render('admin.classrooms.index_datatable');
+    }
+   
+ /**    public function index()
+    *{
+     *   $classrooms = Classroom::latest()->paginate(5);
 
     
-        return view('admin.classrooms.index',['classrooms'=>$classrooms]);
-    }
+    *    return view('admin.classrooms.index',['classrooms'=>$classrooms]);
+    *}
 
-    /**
+   
      * Show the form for creating a new resource.
      *
      * @return \Illuminate\Http\Response
@@ -46,10 +52,20 @@ class ClassroomController extends Controller
      */
     public function store(StoreClassroomRequest $request)
     {
-        Classroom::create($request->all());
+        $classroom=  Classroom::create($request->all());
       
-        return redirect()->route('classrooms.index')
-                        ->with('success','classroom created successfully.');
+      
+   if ($classroom)
+        return response()->json([
+            'status' => true,
+            'msg' => 'تم الحفظ بنجاح',
+        ]);
+    
+    else
+        return response()->json([
+            'status' => false,
+            'msg' => 'فشل الحفظ برجاء المحاوله مجددا',
+        ]);
     }
 
     /**
@@ -88,12 +104,24 @@ class ClassroomController extends Controller
      */
     public function update(UpdateClassroomRequest $request, $id)
     {
-         Classroom::findorfail($id)->update($request->all());;
+        $classroom= Classroom::findorfail($id);
         
-      
+       
+         if ($classroom)
+         {
+             $classroom->update($request->all());
+            
+         return response()->json([
+             'status' => true,
+             'msg' => 'تم التحديث بنجاح',
+         ]);
+     }
+     else
+         return response()->json([
+             'status' => false,
+             'msg' => 'هذا الفصل غير موجود',
+         ]);
     
-        return redirect()->route('classrooms.index')
-                        ->with('success','classroom updated successfully');
     }
 
     /**
@@ -102,16 +130,28 @@ class ClassroomController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request  $request)
     {
         
-        $classroom= Classroom::findorfail($id);
-        $classroom->courses()->detach();
-        
+        $classroom= Classroom::findorfail($request->id);
+  
+        if ($classroom)
+        {
+            $classroom->courses()->detach();
         $classroom->delete();
-
-
-        return redirect()->route('classrooms.index')
-                        ->with('success','classroom deleted successfully');
+         return response()->json([
+             'status' => true,
+             'msg' => 'تم الحذف بنجاح',
+             'id' =>  $request->id
+         ]);
     }
+    else
+        return response()->json([
+            'status' => false,
+            'msg' => 'هذا الفصل غير موجود',
+        ]);
+    
+    }
+
+    
 }
